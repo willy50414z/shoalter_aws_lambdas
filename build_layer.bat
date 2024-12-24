@@ -1,0 +1,1 @@
+pip install --target . -r resource/requirements.txt
