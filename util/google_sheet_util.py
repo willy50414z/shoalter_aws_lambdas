@@ -9,7 +9,11 @@ from util import datetime_util
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # Google Sheets setup
+CLIENT_ID = ""
+CLIENT_SECRET = ""
+REFRESH_TOKEN = ""
 
+API_KEY = ""  # https://ithelp.ithome.com.tw/articles/10283037
 
 def refresh_access_token():
     token_url = "https://oauth2.googleapis.com/token"
