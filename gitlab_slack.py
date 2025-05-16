@@ -61,7 +61,7 @@ def pushed_commit(event, context):
                 print(f"message[{message}]")
                 slack_svc.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=message)
             check_jira_status_after_merge_mr(body)
-            check_notion_status_after_merge_mr(body)
+
 
     elif body["object_kind"] == "push":
         pushed_branch_name = body["ref"].replace("refs/heads/", "")
@@ -72,6 +72,7 @@ def pushed_commit(event, context):
                 commit_message = f"{commit_message}{commit["title"]}\r\n"
             commit_message = f"{commit_message}```"
             SlackService().send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
+            check_notion_status_after_merge_mr(body)
     elif body["object_kind"] == "pipeline":
         pushed_branch_name = body["object_attributes"]["ref"]
         if pushed_branch_name in pushed_message_branch:
@@ -83,6 +84,7 @@ def pushed_commit(event, context):
                 user_id = slack_svc.get_slack_user_id(commit_user)
                 commit_message = f"<@{user_id}> {body["project"]["name"]} deploy to {pushed_branch_name} success"
                 slack_svc.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
+                check_notion_status_after_merge_mr(body)
     return {
         'statusCode': 200,
         'body': "ok"
