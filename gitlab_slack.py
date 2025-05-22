@@ -1,4 +1,6 @@
 import json
+import re
+
 from enums.enums import SlackWebhooks
 from service.jira_svc import JiraService
 from service.slack_svc import SlackService
@@ -31,22 +33,21 @@ def check_jira_status_after_merge_mr(body):
                 message = f"<@{user_id}> Please help to update JIRA status\r\n<https://hongkongtv.atlassian.net/browse/{jira_issue_key}>"
                 slack_service.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=message)
             elif issue.fields.status.name == "Pending Review" and body["object_attributes"]["target_branch"] == "dev":
-                aa=0
+                aa = 0
                 # update Jira status to Waiting for Test
                 # need to check is merged by me
                 # jira_svc.update_status(issue.key, "Waiting for Test")
                 # slack_service.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1,
                 #                                    text=f"<@U03D1KMA3RV> JIRA status has updated to [Waiting for Test]\r\n<https://hongkongtv.atlassian.net/browse/{jira_issue_key}>")
 
-def check_notion_status_after_merge_mr(body):
+
+def check_notion_status_after_merge_mr(issue_key, target_branch):
     # send merge request merged and check Jira status
-    source_branch = body["object_attributes"]["source_branch"]
-    target_branch = body["object_attributes"]["target_branch"]
-    source_issue_key = source_branch[source_branch.find("/")+1:]
     if target_branch == "dev" or target_branch == "staging":
-        task = notion_util.find_by_ticket_like(source_issue_key)
+        task = notion_util.find_by_ticket_like(issue_key)
         if len(task) > 0:
             notion_util.update_task_status(task["id"], target_branch)
+
 
 def pushed_commit(event, context):
     request_body = event.get('body', '')
@@ -72,19 +73,25 @@ def pushed_commit(event, context):
                 commit_message = f"{commit_message}{commit["title"]}\r\n"
             commit_message = f"{commit_message}```"
             SlackService().send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
-            check_notion_status_after_merge_mr(body)
     elif body["object_kind"] == "pipeline":
         pushed_branch_name = body["object_attributes"]["ref"]
         if pushed_branch_name in pushed_message_branch:
             status = body["object_attributes"]["status"]
             detailed_status = body["object_attributes"]["detailed_status"]
+            # pipeline跑成功後
             if status == "success" and detailed_status == "passed":
+                # 發slack通知到gitlab_build_team1 channel
                 commit_user = body["commit"]["author"]["email"].split("@")[0]
                 slack_svc = SlackService()
                 user_id = slack_svc.get_slack_user_id(commit_user)
                 commit_message = f"<@{user_id}> {body["project"]["name"]} deploy to {pushed_branch_name} success"
                 slack_svc.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
-                check_notion_status_after_merge_mr(body)
+                # 如果是merge到dev或staging，更新notion Task的status成dev/staging
+                match = re.search(r"branch '([^']+)'", body["commit"]["message"])
+                if match:
+                    branch_name = match.group(1)
+                    issue_key = branch_name[branch_name.rfind("/"):]
+                    check_notion_status_after_merge_mr(issue_key, body["ref"])
     return {
         'statusCode': 200,
         'body': "ok"
