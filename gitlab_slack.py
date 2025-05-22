@@ -46,7 +46,7 @@ def check_notion_status_after_merge_mr(issue_key, target_branch):
     if target_branch == "dev" or target_branch == "staging":
         task = notion_util.find_by_ticket_like(issue_key)
         if len(task) > 0:
-            notion_util.update_task_status(task["id"], target_branch)
+            notion_util.update_task_status(task[0]["id"], target_branch)
 
 
 def pushed_commit(event, context):
@@ -91,7 +91,7 @@ def pushed_commit(event, context):
                 if match:
                     branch_name = match.group(1)
                     issue_key = branch_name[branch_name.rfind("/"):]
-                    check_notion_status_after_merge_mr(issue_key, body["ref"])
+                    check_notion_status_after_merge_mr(issue_key, body["object_attributes"]["ref"])
     return {
         'statusCode': 200,
         'body': "ok"

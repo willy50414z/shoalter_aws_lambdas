@@ -52,8 +52,7 @@ def update_task_status(pageid, status):
         "parent": {"type": "database_id", "database_id": ecom_engine_database_id},
         "properties": {
             "Status": {
-                "type": "select",
-                'select': {
+                'status': {
                     'name': status
                 }
             }
