@@ -41,12 +41,21 @@ def check_jira_status_after_merge_mr(body):
                 #                                    text=f"<@U03D1KMA3RV> JIRA status has updated to [Waiting for Test]\r\n<https://hongkongtv.atlassian.net/browse/{jira_issue_key}>")
 
 
-def check_notion_status_after_merge_mr(issue_key, target_branch):
+def update_notion_status_after_pipeline_finish(issue_key, target_branch):
+    # send merge request merged and check Jira status
+    if target_branch == "dev" or target_branch == "staging":
+        task = notion_util.find_by_ticket_like(issue_key)
+        tasks = notion_util.find_by_system_and_status(task[0]['properties']['System']['select']['name'], "staging-wait_pipeline")
+        if len(tasks) > 0:
+            for task in tasks:
+                notion_util.update_task_status(task["id"], target_branch)
+
+def update_notion_status_while_pipeline_running(issue_key, target_branch):
     # send merge request merged and check Jira status
     if target_branch == "dev" or target_branch == "staging":
         task = notion_util.find_by_ticket_like(issue_key)
         if len(task) > 0:
-            notion_util.update_task_status(task[0]["id"], target_branch)
+            notion_util.update_task_status(task[0]["id"], "staging-wait_pipeline")
 
 
 def pushed_commit(event, context):
@@ -91,7 +100,14 @@ def pushed_commit(event, context):
                 if match:
                     branch_name = match.group(1)
                     issue_key = branch_name[branch_name.rfind("/"):]
-                    check_notion_status_after_merge_mr(issue_key, body["object_attributes"]["ref"])
+                    update_notion_status_after_pipeline_finish(issue_key, body["object_attributes"]["ref"])
+            elif status == "running":
+                # 如果是merge到dev或staging，更新notion Task的status成dev/staging
+                match = re.search(r"branch '([^']+)'", body["commit"]["message"])
+                if match:
+                    branch_name = match.group(1)
+                    issue_key = branch_name[branch_name.rfind("/"):]
+                    update_notion_status_while_pipeline_running(issue_key, body["object_attributes"]["ref"])
     return {
         'statusCode': 200,
         'body': "ok"

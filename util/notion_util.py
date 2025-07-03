@@ -31,6 +31,35 @@ def create_slack_subtask(title, url):
     response = requests.post('https://api.notion.com/v1/pages', json=payload, headers=headers)
     return response
 
+
+def find_by_system_and_status(system, status):
+    url = f'https://api.notion.com/v1/databases/{ecom_engine_database_id}/query'
+    payload = {
+        "page_size": 100,
+        "filter": {
+            "and": [{
+                    "property": "System",
+                    "select": {
+                        "equals": system
+                    }
+                }, {
+                    "property": "Status",
+                    "status": {
+                        "equals": status
+                    }
+                }
+            ]
+        }
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+    data = response.json()
+    if "results" in data:
+        return data["results"]
+    else:
+        raise ValueError(f"[find_by_system_and_status] fetch notion data by issue key failed,system[{system}]status[{status}]")
+
+
 def find_by_ticket_like(issueKey):
     url = f'https://api.notion.com/v1/databases/{ecom_engine_database_id}/query'
     payload = {"page_size": 100, "filter": {
@@ -45,6 +74,7 @@ def find_by_ticket_like(issueKey):
         return data["results"]
     else:
         raise ValueError("[findByTicketLike] fetch notion data by issue key failed, issueKey[" + issueKey + "]")
+
 
 def update_task_status(pageid, status):
     url = f'https://api.notion.com/v1/pages/{pageid}'
