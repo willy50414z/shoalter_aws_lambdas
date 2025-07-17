@@ -70,52 +70,55 @@ def pushed_commit(event, context):
     body = json.loads(request_body)
     print(body)
     slack_svc = SlackService()
-    if body["object_kind"] == "merge_request":
-        if body["object_attributes"]["action"] == "merge":
-            if body["object_attributes"]["target_branch"] not in pushed_message_branch:
-                # send merge to dev/staging commits
-                message = f"<@{slack_svc.get_slack_user_id(body["object_attributes"]["last_commit"]["author"]["email"].split("@")[0])}> This Merge Request has merged to {body["object_attributes"]["target_branch"]}. Please continue the other actions.\r\n<{body["object_attributes"]["url"]}>"
-                print(f"message[{message}]")
-                slack_svc.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=message)
-            check_jira_status_after_merge_mr(body)
+    try:
+        if body["object_kind"] == "merge_request":
+            if body["object_attributes"]["action"] == "merge":
+                if body["object_attributes"]["target_branch"] not in pushed_message_branch:
+                    # send merge to dev/staging commits
+                    message = f"<@{slack_svc.get_slack_user_id(body["object_attributes"]["last_commit"]["author"]["email"].split("@")[0])}> This Merge Request has merged to {body["object_attributes"]["target_branch"]}. Please continue the other actions.\r\n<{body["object_attributes"]["url"]}>"
+                    print(f"message[{message}]")
+                    slack_svc.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=message)
+                check_jira_status_after_merge_mr(body)
 
 
-    elif body["object_kind"] == "push":
-        pushed_branch_name = body["ref"].replace("refs/heads/", "")
-        if pushed_branch_name in pushed_message_branch:
-            project_name = body["project"]["name"]
-            commit_message = f"{project_name} has been pushed commits to {pushed_branch_name}\r\n```"
-            for commit in body["commits"]:
-                commit_message = f"{commit_message}{commit["title"]}\r\n"
-            commit_message = f"{commit_message}```"
-            SlackService().send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
-    elif body["object_kind"] == "pipeline":
-        pushed_branch_name = body["object_attributes"]["ref"]
-        if pushed_branch_name in pushed_message_branch:
-            status = body["object_attributes"]["status"]
-            detailed_status = body["object_attributes"]["detailed_status"]
-            # pipeline跑成功後
-            if status == "success" and detailed_status == "passed":
-                # 發slack通知到gitlab_build_team1 channel
-                commit_user = body["commit"]["author"]["email"].split("@")[0]
-                slack_svc = SlackService()
-                user_id = slack_svc.get_slack_user_id(commit_user)
-                commit_message = f"<@{user_id}> {body["project"]["name"]} deploy to {pushed_branch_name} success"
-                slack_svc.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
-                # 如果是merge到dev或staging，更新notion Task的status成dev/staging
-                match = re.search(r"branch '([^']+)'", body["commit"]["message"])
-                if match:
-                    branch_name = match.group(1)
-                    issue_key = branch_name[branch_name.rfind("/") + 1:]
-                    print(f"issue_key[{issue_key}]ref[{body["object_attributes"]["ref"]}]")
-                    update_notion_status_after_pipeline_finish(issue_key, body["object_attributes"]["ref"])
-            elif status == "running":
-                # 如果是merge到dev或staging，更新notion Task的status成dev/staging
-                match = re.search(r"branch '([^']+)'", body["commit"]["message"])
-                if match:
-                    branch_name = match.group(1)
-                    issue_key = branch_name[branch_name.rfind("/"):]
-                    update_notion_status_while_pipeline_running(issue_key, body["object_attributes"]["ref"])
+        elif body["object_kind"] == "push":
+            pushed_branch_name = body["ref"].replace("refs/heads/", "")
+            if pushed_branch_name in pushed_message_branch:
+                project_name = body["project"]["name"]
+                commit_message = f"{project_name} has been pushed commits to {pushed_branch_name}\r\n```"
+                for commit in body["commits"]:
+                    commit_message = f"{commit_message}{commit["title"]}\r\n"
+                commit_message = f"{commit_message}```"
+                SlackService().send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
+        elif body["object_kind"] == "pipeline":
+            pushed_branch_name = body["object_attributes"]["ref"]
+            if pushed_branch_name in pushed_message_branch:
+                status = body["object_attributes"]["status"]
+                detailed_status = body["object_attributes"]["detailed_status"]
+                # pipeline跑成功後
+                if status == "success" and detailed_status == "passed":
+                    # 發slack通知到gitlab_build_team1 channel
+                    commit_user = body["commit"]["author"]["email"].split("@")[0]
+                    slack_svc = SlackService()
+                    user_id = slack_svc.get_slack_user_id(commit_user)
+                    commit_message = f"<@{user_id}> {body["project"]["name"]} deploy to {pushed_branch_name} success"
+                    slack_svc.send_webhook_message(slack_webhook=SlackWebhooks.gitlab_build_team1, text=commit_message)
+                    # 如果是merge到dev或staging，更新notion Task的status成dev/staging
+                    match = re.search(r"branch '([^']+)'", body["commit"]["message"])
+                    if match:
+                        branch_name = match.group(1)
+                        issue_key = branch_name[branch_name.rfind("/") + 1:]
+                        print(f"issue_key[{issue_key}]ref[{body["object_attributes"]["ref"]}]")
+                        update_notion_status_after_pipeline_finish(issue_key, body["object_attributes"]["ref"])
+                elif status == "running":
+                    # 如果是merge到dev或staging，更新notion Task的status成dev/staging
+                    match = re.search(r"branch '([^']+)'", body["commit"]["message"])
+                    if match:
+                        branch_name = match.group(1)
+                        issue_key = branch_name[branch_name.rfind("/"):]
+                        update_notion_status_while_pipeline_running(issue_key, body["object_attributes"]["ref"])
+    except Exception as e:
+        print(e)
     return {
         'statusCode': 200,
         'body': "ok"
