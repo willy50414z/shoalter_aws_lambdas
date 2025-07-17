@@ -54,7 +54,7 @@ def update_notion_status_after_pipeline_finish(issue_key, target_branch):
         print(f"updated tasks[{tasks}]")
         if len(tasks) > 0:
             for task in tasks:
-                notion_util.update_task_status(task["id"], target_branch)
+                print(notion_util.update_task_status(task["id"], target_branch))
 
 
 def update_notion_status_while_pipeline_running(issue_key, target_branch):
