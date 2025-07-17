@@ -100,7 +100,7 @@ def pushed_commit(event, context):
                 match = re.search(r"branch '([^']+)'", body["commit"]["message"])
                 if match:
                     branch_name = match.group(1)
-                    issue_key = branch_name[branch_name.rfind("/"):]
+                    issue_key = branch_name[branch_name.rfind("/")+1:]
                     print(f"issue_key[{issue_key}]ref[{body["object_attributes"]["ref"]}]")
                     update_notion_status_after_pipeline_finish(issue_key, body["object_attributes"]["ref"])
             elif status == "running":
