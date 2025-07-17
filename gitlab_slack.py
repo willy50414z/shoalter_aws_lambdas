@@ -45,6 +45,7 @@ def update_notion_status_after_pipeline_finish(issue_key, target_branch):
     # send merge request merged and check Jira status
     if target_branch == "dev" or target_branch == "staging":
         task = notion_util.find_by_ticket_like(issue_key)
+        print(f"update notion statuc, sys_code[{task[0]['properties']['System']['select']['name']}]status[{f"{target_branch}-wait_pipeline"}]")
         tasks = notion_util.find_by_system_and_status(task[0]['properties']['System']['select']['name'],
                                                       f"{target_branch}-wait_pipeline")
         print(f"updated tasks[{tasks}]")
