@@ -45,11 +45,13 @@ def update_notion_status_after_pipeline_finish(issue_key, target_branch):
     # send merge request merged and check Jira status
     if target_branch == "dev" or target_branch == "staging":
         task = notion_util.find_by_ticket_like(issue_key)
-        tasks = notion_util.find_by_system_and_status(task[0]['properties']['System']['select']['name'], "staging-wait_pipeline")
+        tasks = notion_util.find_by_system_and_status(task[0]['properties']['System']['select']['name'],
+                                                      f"{target_branch}-wait_pipeline")
         print(f"updated tasks[{tasks}]")
         if len(tasks) > 0:
             for task in tasks:
                 notion_util.update_task_status(task["id"], target_branch)
+
 
 def update_notion_status_while_pipeline_running(issue_key, target_branch):
     # send merge request merged and check Jira status
@@ -100,7 +102,7 @@ def pushed_commit(event, context):
                 match = re.search(r"branch '([^']+)'", body["commit"]["message"])
                 if match:
                     branch_name = match.group(1)
-                    issue_key = branch_name[branch_name.rfind("/")+1:]
+                    issue_key = branch_name[branch_name.rfind("/") + 1:]
                     print(f"issue_key[{issue_key}]ref[{body["object_attributes"]["ref"]}]")
                     update_notion_status_after_pipeline_finish(issue_key, body["object_attributes"]["ref"])
             elif status == "running":
