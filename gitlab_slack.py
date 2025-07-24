@@ -62,7 +62,7 @@ def update_notion_status_while_pipeline_running(issue_key, target_branch):
     if target_branch == "dev" or target_branch == "staging":
         task = notion_util.find_by_ticket_like(issue_key)
         if len(task) > 0:
-            notion_util.update_task_status(task[0]["id"], "staging-wait_pipeline")
+            notion_util.update_task_status(task[0]["id"], f"{target_branch}-wait_pipeline")
 
 
 def pushed_commit(event, context):
