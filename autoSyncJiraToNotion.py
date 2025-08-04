@@ -251,7 +251,7 @@ def printJiraTicket():
         print(issue.key)
 
 
-if __name__ == '__main__':
+def reaction_event(event, context):
     # printJiraTicket()
     # updateNotionTicketStatus()
     # issue = jira_util.findIssueByKey("AUTOBUILD-95")
@@ -268,22 +268,22 @@ if __name__ == '__main__':
     #     time.sleep(10)
     # notion_util.createSubTask(jira_util.findIssueByKey("EER-2700"))
     # notion_util.findByTicket("12d43989266a8035886be967a4427bc4", "https://hongkongtv.atlassian.net/browse/EER-2463")
-    while 1 == 1:
-        try:
-            now = datetime.now()
-            if 6 < now.hour < 20:
-                print("start sync Jira ticket, " + now.strftime("%Y%m%d %H:%M:%S.%f"))
-                # update_eer_and_team1_ticket_status_thread = threading.Thread(target=update_eer_and_team1_ticket_status)
-                # update_eer_and_team1_ticket_status_thread.start()
+    # while 1 == 1:
+    try:
+        now = datetime.now()
+        if 6 < now.hour < 20:
+            print("start sync Jira ticket, " + now.strftime("%Y%m%d %H:%M:%S.%f"))
+            # update_eer_and_team1_ticket_status_thread = threading.Thread(target=update_eer_and_team1_ticket_status)
+            # update_eer_and_team1_ticket_status_thread.start()
 
-                update_eer_and_team1_ticket_status()
+            update_eer_and_team1_ticket_status()
 
-                create_eer_task_from_jira()
-                create_team1_task_from_jira()
-                # update_eer_and_team1_ticket_status_thread.join()
-                print("end sync Jira ticket, " + now.strftime("%Y%m%d %H:%M:%S.%f"))
-            else:
-                time.sleep(3600)
-        except Exception as e:
-            print("autoSyncJiraToNotion execute fail, exception[{}]", e)
-        time.sleep(1800)
+            create_eer_task_from_jira()
+            create_team1_task_from_jira()
+            # update_eer_and_team1_ticket_status_thread.join()
+            print("end sync Jira ticket, " + now.strftime("%Y%m%d %H:%M:%S.%f"))
+        # else:
+        #     time.sleep(3600)
+    except Exception as e:
+        print("autoSyncJiraToNotion execute fail, exception[{}]", e)
+    # time.sleep(1800)
