@@ -1,3 +1,4 @@
+import configparser
 import json
 
 import requests
@@ -9,11 +10,14 @@ from util import datetime_util
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # Google Sheets setup
-CLIENT_ID = ""
-CLIENT_SECRET = ""
-REFRESH_TOKEN = ""
+config = configparser.ConfigParser()
+config.read('../application.ini')
+# Set your Slack API token
+CLIENT_ID = config["DEFAULT"]["google_client_id"]
+CLIENT_SECRET = config["DEFAULT"]["google_client_secret"]
+REFRESH_TOKEN = config["DEFAULT"]["google_refresh_token"]
 
-API_KEY = ""  # https://ithelp.ithome.com.tw/articles/10283037
+API_KEY = config["DEFAULT"]["google_api_key"]  # https://ithelp.ithome.com.tw/articles/10283037
 
 def refresh_access_token():
     token_url = "https://oauth2.googleapis.com/token"

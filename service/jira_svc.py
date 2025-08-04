@@ -1,12 +1,20 @@
+import configparser
+
 from jira import JIRA, JIRAError
 
 
 class JiraService:
     def __init__(self):
         jiraOptions = {'server': "https://hongkongtv.atlassian.net/"}
+
+        config = configparser.ConfigParser()
+        config.read('../application.ini')
+        jira = JIRA(options=jiraOptions, basic_auth=(
+            config["DEFAULT"]["email"], config["DEFAULT"]["jira_token"]))
+
         self.jira = JIRA(options=jiraOptions, basic_auth=(
-            "willy.cheng@shoalter.com",
-            ""))
+            config["DEFAULT"]["email"],
+            config["DEFAULT"]["jira_token"]))
 
     def findIssueByKey(self, issue_key):
         try:

@@ -1,3 +1,4 @@
+import configparser
 import json
 import time
 
@@ -5,7 +6,11 @@ import requests
 from slack_sdk import WebClient
 
 WEBHOOK_BASE_URL = "https://hooks.slack.com/services/"
-TOKEN = ""
+
+config = configparser.ConfigParser()
+config.read('../application.ini')
+# Set your Slack API token
+TOKEN = config["DEFAULT"]["slack_token"]
 
 
 class SlackService:
