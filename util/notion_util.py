@@ -1,11 +1,12 @@
 import configparser
+import os
 
 import requests
 
 from util import string_util
 
 config = configparser.ConfigParser()
-config.read('../application.ini')
+config.read(os.path.join('/opt/python', 'application.ini'))
 integration_token = config["DEFAULT"]["notion_token"]  # Replace with your integration token
 
 headers = {

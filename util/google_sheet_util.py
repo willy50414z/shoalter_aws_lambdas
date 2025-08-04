@@ -1,5 +1,6 @@
 import configparser
 import json
+import os
 
 import requests
 
@@ -11,7 +12,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # Google Sheets setup
 config = configparser.ConfigParser()
-config.read('../application.ini')
+config.read(os.path.join('/opt/python', 'application.ini'))
 # Set your Slack API token
 CLIENT_ID = config["DEFAULT"]["google_client_id"]
 CLIENT_SECRET = config["DEFAULT"]["google_client_secret"]

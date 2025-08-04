@@ -5,21 +5,9 @@ from jira import JIRA
 
 jiraOptions = {'server': "https://hongkongtv.atlassian.net/"}
 
-# Print the current working directory (project path)
-project_path = os.getcwd()
-print("Project path:", project_path)
-
 # Specify the filename or relative path
-file_path = os.path.join(project_path, 'application.ini')
-
-# Check if the file exists
-if os.path.exists(file_path):
-    print("File exists.")
-else:
-    print("File does not exist.")
-
 config = configparser.ConfigParser()
-config.read('../application.ini')
+config.read(os.path.join('/opt/python', 'application.ini'))
 jira = JIRA(options=jiraOptions, basic_auth=(
     config["DEFAULT"]["email"],config["DEFAULT"]["jira_token"]))
 
