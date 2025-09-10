@@ -39,6 +39,7 @@ def refresh_access_token():
 
 
 def find_all(sheet_id, sheet_name):
+    print(f"[find_all]start, sheet_id[{sheet_id}]sheet_name[{sheet_name}]API_KEY[{API_KEY}]")
     sheet_data = requests.get(
         f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values/{sheet_name}?key={API_KEY}")
     return sheet_data.json()
