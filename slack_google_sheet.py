@@ -20,8 +20,8 @@ def reaction_event(event, context):
                 "channel"):
             channel = slack_channel
             break
-    if event_type == "reaction_added" and reaction == "rabbit-key":
-        slack_reaction_svc.add_rabbit_key(channel, body)
+    if event_type == "reaction_added" and reaction == "notion":
+        slack_reaction_svc.add_notion(channel, body)
     else:
         if channel and event_type == "reaction_added":
             if reaction == "done":

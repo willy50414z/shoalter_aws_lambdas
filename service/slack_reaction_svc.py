@@ -87,7 +87,7 @@ def add_backend2_help(slack_channel, body):
         print(res.json())
 
 
-def add_rabbit_key(slack_channel, body):
+def add_notion(slack_channel, body):
     title = "UNKNOW CHANNEL"
     if slack_channel:
         slack_svc = SlackService()
