@@ -11,6 +11,11 @@ def reaction_event(event, context):
     request_body = event.get('body', '')
     body = json.loads(request_body)
     print(request_body)
+
+    # for slack connection test
+    if "challenge" in body and len(body.keys()) == 1:
+        return body["challenge"]
+
     channel = None
 
     event_type = body.get("event").get("type")
